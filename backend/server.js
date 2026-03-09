@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+const authRoutes = require('./routes/auth');
 const transactionRoutes = require('./routes/transactions');
 const summaryRoutes = require('./routes/summary');
 const budgetRoutes = require('./routes/budgets');
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.json({ status: 'FinTrack API running', version: '2.0.0' }));
 
+app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/summary', summaryRoutes);
 app.use('/api/budgets', budgetRoutes);

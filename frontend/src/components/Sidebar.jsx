@@ -1,4 +1,4 @@
-import { LayoutDashboard, ArrowLeftRight, PieChart, Tag, PiggyBank, BarChart2, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, PieChart, Tag, PiggyBank, BarChart2, Settings, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { useState } from 'react';
 
 const navItems = [
@@ -11,9 +11,10 @@ const navItems = [
   { icon: Settings, label: 'Settings', id: 'settings' },
 ];
 
-export default function Sidebar({ active, onNav }) {
+export default function Sidebar({ active, onNav, user }) {
   const [collapsed, setCollapsed] = useState(false);
   const w = collapsed ? 72 : 220;
+  const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
 
   return (
     <aside style={{ width: w, minWidth: w }} className="fixed left-0 top-0 h-full bg-slate-900 flex flex-col transition-all duration-300 z-50">
@@ -47,17 +48,17 @@ export default function Sidebar({ active, onNav }) {
       </button>
 
       <div className="border-t border-slate-800 px-3 py-4">
-        <div className="flex items-center gap-3">
+        <button onClick={() => onNav('profile')} className="flex items-center gap-3 w-full hover:opacity-80 transition-opacity">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            AJ
+            {initials}
           </div>
           {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-white truncate">Alex Johnson</p>
+            <div className="min-w-0 text-left">
+              <p className="text-sm font-medium text-white truncate">{user?.name || 'User'}</p>
               <p className="text-xs text-slate-500">Free Plan</p>
             </div>
           )}
-        </div>
+        </button>
       </div>
     </aside>
   );
