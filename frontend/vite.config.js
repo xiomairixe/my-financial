@@ -16,13 +16,3 @@ export default defineConfig({
     }
   }
 })
-EOF
-
-Also make sure postcss.config.js exists:
-bashcat > ~/projects/my-finance/frontend/postcss.config.js << 'EOF'
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
