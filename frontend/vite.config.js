@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  css: {
+    transformer: 'postcss',
+  },
   server: {
     port: 5173,
     proxy: {
@@ -13,3 +16,13 @@ export default defineConfig({
     }
   }
 })
+EOF
+
+Also make sure postcss.config.js exists:
+bashcat > ~/projects/my-finance/frontend/postcss.config.js << 'EOF'
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
