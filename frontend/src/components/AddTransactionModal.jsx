@@ -7,9 +7,7 @@ export default function AddTransactionModal({ onClose, onAdded, categories = [] 
   const [form, setForm] = useState({ description: '', amount: '', type: 'expense', category: '', date: today });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
   const availableCats = categories.filter(c => c.type === 'both' || c.type === form.type);
-
   const handleSubmit = async () => {
     if (!form.description || !form.amount || !form.category) return setError('Please fill all fields');
     setLoading(true); setError('');
@@ -20,21 +18,17 @@ export default function AddTransactionModal({ onClose, onAdded, categories = [] 
       setError(e.response?.data?.error || 'Failed to add transaction');
     } finally { setLoading(false); }
   };
-
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-slate-800">Add Transaction</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400">
-            <X size={18} />
-          </button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400"><X size={18} /></button>
         </div>
         <div className="flex mb-5 bg-slate-100 rounded-xl p-1">
           {['expense', 'income'].map(t => (
             <button key={t} onClick={() => setForm(f => ({ ...f, type: t, category: '' }))}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all
-                ${form.type === t ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
+              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${form.type === t ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
               {t}
             </button>
           ))}
@@ -44,9 +38,7 @@ export default function AddTransactionModal({ onClose, onAdded, categories = [] 
             <label className="text-xs font-medium text-slate-500 mb-1 block">Amount</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-              <input type="number" min="0" step="0.01" value={form.amount}
-                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                placeholder="0.00"
+              <input type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="0.00"
                 className="w-full border border-slate-200 rounded-xl pl-7 pr-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
             </div>
           </div>
@@ -60,8 +52,7 @@ export default function AddTransactionModal({ onClose, onAdded, categories = [] 
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Description</label>
-            <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="e.g., Groceries at Whole Foods"
+            <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="e.g., Groceries at Whole Foods"
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
           </div>
           <div>
