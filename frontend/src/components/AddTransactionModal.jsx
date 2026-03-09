@@ -1,75 +1,86 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
-import { createTransaction } from '../utils/api';
+// src/components/AddTransactionModal.jsx
+import React, { useState } from "react";
 
-export default function AddTransactionModal({ onClose, onAdded, categories = [] }) {
-  const today = new Date().toISOString().split('T')[0];
-  const [form, setForm] = useState({ description: '', amount: '', type: 'expense', category: '', date: today });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const availableCats = categories.filter(c => c.type === 'both' || c.type === form.type);
-  const handleSubmit = async () => {
-    if (!form.description || !form.amount || !form.category) return setError('Please fill all fields');
-    setLoading(true); setError('');
-    try {
-      await createTransaction({ ...form, amount: parseFloat(form.amount) });
-      onAdded(); onClose();
-    } catch (e) {
-      setError(e.response?.data?.error || 'Failed to add transaction');
-    } finally { setLoading(false); }
+const AddTransactionModal = ({ isOpen, onClose, onAddTransaction }) => {
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
+  const [type, setType] = useState("income");
+
+  if (!isOpen) return null; // hide modal when not open
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!title || !amount) return;
+
+    onAddTransaction({
+      title,
+      amount: parseFloat(amount),
+      type,
+      date: new Date().toISOString(),
+    });
+
+    // Reset form
+    setTitle("");
+    setAmount("");
+    setType("income");
+    onClose();
   };
+
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-slate-800">Add Transaction</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400"><X size={18} /></button>
-        </div>
-        <div className="flex mb-5 bg-slate-100 rounded-xl p-1">
-          {['expense', 'income'].map(t => (
-            <button key={t} onClick={() => setForm(f => ({ ...f, type: t, category: '' }))}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${form.type === t ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500'}`}>
-              {t}
-            </button>
-          ))}
-        </div>
-        <div className="space-y-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white p-6 rounded shadow-lg w-96">
+        <h2 className="text-xl font-bold mb-4">Add Transaction</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Amount</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-              <input type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="0.00"
-                className="w-full border border-slate-200 rounded-xl pl-7 pr-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
-            </div>
+            <label className="block mb-1 font-medium">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="Transaction title"
+            />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Category</label>
-            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400">
-              <option value="">Select a category</option>
-              {availableCats.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+            <label className="block mb-1 font-medium">Amount</label>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label className="block mb-1 font-medium">Type</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
             </select>
           </div>
-          <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Description</label>
-            <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="e.g., Groceries at Whole Foods"
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
+          <div className="flex justify-end space-x-2 mt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+            >
+              Add
+            </button>
           </div>
-          <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Date</label>
-            <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
-              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
-          </div>
-        </div>
-        {error && <p className="text-red-500 text-xs mt-3">{error}</p>}
-        <div className="flex gap-3 mt-6">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
-          <button onClick={handleSubmit} disabled={loading}
-            className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 disabled:opacity-60">
-            {loading ? 'Adding...' : 'Add Transaction'}
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );
-}
+};
+
+export default AddTransactionModal; // ✅ default export
