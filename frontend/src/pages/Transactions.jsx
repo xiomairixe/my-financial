@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import TopBar from '../components/TopBar';
 import AddTransactionModal from '../components/AddTransactionModal';
-import { getTransactions, deleteTransaction, getCategories } from '../utils/api';
+import { getTransactions, deleteTransaction, getCategories, createTransaction } from '../utils/api'; // ← DINAGDAG createTransaction
 
 const TYPE_COLORS = {
   Transportation: 'bg-orange-100 text-orange-600',
@@ -37,6 +37,12 @@ export default function Transactions() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // ✅ FIXED: Gumagawa ng transaction tapos nag-refresh ng list
+  const handleAddTransaction = async (data) => {
+    await createTransaction(data);
+    fetchData();
+  };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this transaction?')) return;
@@ -125,7 +131,13 @@ export default function Transactions() {
           </table>
         </div>
       </div>
-      {showModal && <AddTransactionModal onClose={() => setShowModal(false)} onAdded={fetchData} categories={categories} />}
+      {showModal && (
+        <AddTransactionModal
+          onClose={() => setShowModal(false)}
+          onAdded={handleAddTransaction}  // ✅ FIXED: handleAddTransaction na, hindi fetchData
+          categories={categories}
+        />
+      )}
     </div>
   );
 }
