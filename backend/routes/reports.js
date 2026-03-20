@@ -10,7 +10,10 @@ router.get('/', async (req, res) => {
     start.setDate(1);
     start.setHours(0, 0, 0, 0);
 
-    const transactions = await Transaction.find({ date: { $gte: start } });
+    const transactions = await Transaction.find({
+      userId: req.user._id, // ← userId
+      date: { $gte: start }
+    });
 
     const monthlyMap = {};
     for (let i = months - 1; i >= 0; i--) {

@@ -4,7 +4,7 @@ const SavingsGoal = require('../models/SavingsGoal');
 
 router.get('/', async (req, res) => {
   try {
-    const goals = await SavingsGoal.find().sort({ createdAt: -1 });
+    const goals = await SavingsGoal.find({ userId: req.user._id }).sort({ createdAt: -1 }); // ← userId
     res.json(goals);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const goal = new SavingsGoal(req.body);
+    const goal = new SavingsGoal({ ...req.body, userId: req.user._id }); // ← userId
     await goal.save();
     res.status(201).json(goal);
   } catch (err) {
@@ -23,7 +23,11 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id', async (req, res) => {
   try {
-    const goal = await SavingsGoal.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const goal = await SavingsGoal.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id }, // ← userId check
+      req.body,
+      { new: true }
+    );
     if (!goal) return res.status(404).json({ error: 'Goal not found' });
     res.json(goal);
   } catch (err) {
@@ -33,7 +37,8 @@ router.patch('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await SavingsGoal.findByIdAndDelete(req.params.id);
+    const deleted = await SavingsGoal.findOneAndDelete({ _id: req.params.id, userId: req.user._id }); // ← userId
+    if (!deleted) return res.status(404).json({ error: 'Goal not found' });
     res.json({ message: 'Goal deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

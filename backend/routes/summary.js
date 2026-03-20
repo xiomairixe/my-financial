@@ -4,7 +4,7 @@ const Transaction = require('../models/Transaction');
 
 router.get('/', async (req, res) => {
   try {
-    const transactions = await Transaction.find();
+    const transactions = await Transaction.find({ userId: req.user._id }); // ← userId
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
     const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
     const totalBalance = totalIncome - totalExpenses;
@@ -21,7 +21,10 @@ router.get('/monthly', async (req, res) => {
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
     sixMonthsAgo.setDate(1);
 
-    const transactions = await Transaction.find({ date: { $gte: sixMonthsAgo } });
+    const transactions = await Transaction.find({
+      userId: req.user._id, // ← userId
+      date: { $gte: sixMonthsAgo }
+    });
 
     const monthlyData = {};
     for (let i = 5; i >= 0; i--) {
@@ -51,7 +54,11 @@ router.get('/categories', async (req, res) => {
   try {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const expenses = await Transaction.find({ type: 'expense', date: { $gte: startOfMonth } });
+    const expenses = await Transaction.find({
+      userId: req.user._id, // ← userId
+      type: 'expense',
+      date: { $gte: startOfMonth }
+    });
     const byCategory = {};
     expenses.forEach(t => { byCategory[t.category] = (byCategory[t.category] || 0) + t.amount; });
     const result = Object.entries(byCategory).map(([name, value]) => ({ name, value }));

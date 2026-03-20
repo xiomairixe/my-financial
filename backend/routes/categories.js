@@ -18,12 +18,15 @@ const DEFAULT_CATEGORIES = [
 
 router.get('/', async (req, res) => {
   try {
-    let categories = await Category.find().sort({ createdAt: 1 });
+    let categories = await Category.find({ userId: req.user._id }).sort({ createdAt: 1 }); // ← userId filter
+
     if (categories.length === 0) {
-      await Category.insertMany(DEFAULT_CATEGORIES);
-      categories = await Category.find().sort({ createdAt: 1 });
+      const defaults = DEFAULT_CATEGORIES.map(c => ({ ...c, userId: req.user._id })); // ← userId sa defaults
+      await Category.insertMany(defaults);
+      categories = await Category.find({ userId: req.user._id }).sort({ createdAt: 1 });
     }
-    const transactions = await Transaction.find();
+
+    const transactions = await Transaction.find({ userId: req.user._id }); // ← userId filter
     const txCountMap = {};
     transactions.forEach(t => { txCountMap[t.category] = (txCountMap[t.category] || 0) + 1; });
     const result = categories.map(c => ({ ...c.toObject(), txCount: txCountMap[c.name] || 0 }));
@@ -35,7 +38,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const cat = new Category(req.body);
+    const cat = new Category({ ...req.body, userId: req.user._id }); // ← userId
     await cat.save();
     res.status(201).json(cat);
   } catch (err) {
@@ -45,7 +48,9 @@ router.post('/', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await Category.findByIdAndDelete(req.params.id);
+    const cat = await Category.findOne({ _id: req.params.id, userId: req.user._id }); // ← userId check
+    if (!cat) return res.status(404).json({ error: 'Category not found' });
+    await cat.deleteOne();
     res.json({ message: 'Category deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });

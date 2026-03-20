@@ -9,11 +9,15 @@ router.get('/', async (req, res) => {
     const month = parseInt(req.query.month ?? now.getMonth());
     const year = parseInt(req.query.year ?? now.getFullYear());
 
-    const budgets = await Budget.find({ month, year });
+    const budgets = await Budget.find({ userId: req.user._id, month, year }); // ← userId
 
     const start = new Date(year, month, 1);
     const end = new Date(year, month + 1, 0, 23, 59, 59);
-    const expenses = await Transaction.find({ type: 'expense', date: { $gte: start, $lte: end } });
+    const expenses = await Transaction.find({
+      userId: req.user._id, // ← userId
+      type: 'expense',
+      date: { $gte: start, $lte: end }
+    });
 
     const spentMap = {};
     expenses.forEach(t => { spentMap[t.category] = (spentMap[t.category] || 0) + t.amount; });
@@ -31,13 +35,13 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { category, monthlyLimit, month, year } = req.body;
-    const existing = await Budget.findOne({ category, month, year });
+    const existing = await Budget.findOne({ userId: req.user._id, category, month, year }); // ← userId
     if (existing) {
       existing.monthlyLimit = monthlyLimit;
       await existing.save();
       return res.json(existing);
     }
-    const budget = new Budget({ category, monthlyLimit, month, year });
+    const budget = new Budget({ userId: req.user._id, category, monthlyLimit, month, year }); // ← userId
     await budget.save();
     res.status(201).json(budget);
   } catch (err) {
@@ -47,7 +51,8 @@ router.post('/', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await Budget.findByIdAndDelete(req.params.id);
+    const deleted = await Budget.findOneAndDelete({ _id: req.params.id, userId: req.user._id }); // ← userId
+    if (!deleted) return res.status(404).json({ error: 'Budget not found' });
     res.json({ message: 'Budget deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
