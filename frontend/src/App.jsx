@@ -18,6 +18,7 @@ export default function App() {
   });
   const [authPage, setAuthPage] = useState('login');
   const [activePage, setActivePage] = useState('dashboard');
+  const [collapsed, setCollapsed] = useState(false); // ← LIFTED UP DITO
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -29,7 +30,6 @@ export default function App() {
     setAuthPage('login');
   };
 
-  // Not logged in — show auth pages
   if (!user) {
     return authPage === 'login'
       ? <Login onLogin={handleLogin} onGoRegister={() => setAuthPage('register')} />
@@ -52,8 +52,19 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar active={activePage} onNav={setActivePage} user={user} />
-      <main className="flex-1 ml-[220px] min-h-screen bg-slate-50">
+      {/* ← IPINASA ang collapsed at setCollapsed sa Sidebar */}
+      <Sidebar
+        active={activePage}
+        onNav={setActivePage}
+        user={user}
+        collapsed={collapsed}
+        onCollapse={setCollapsed}
+      />
+      {/* ← DYNAMIC na ang margin — nag-a-adjust kapag nag-collapse */}
+      <main
+        className="flex-1 min-h-screen bg-slate-50 transition-all duration-300"
+        style={{ marginLeft: collapsed ? 72 : 220 }}
+      >
         {renderPage()}
       </main>
     </div>
