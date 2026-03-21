@@ -5,9 +5,9 @@ import TopBar from '../components/TopBar';
 import { getReports } from '../utils/api';
 
 const PERIOD_OPTIONS = [
-  { label: '3 Months', value: 3 },
-  { label: '6 Months', value: 6 },
-  { label: '1 Year', value: 12 },
+  { label: '3M', value: 3 },
+  { label: '6M', value: 6 },
+  { label: '1Y', value: 12 },
 ];
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -38,88 +38,93 @@ export default function Reports() {
   return (
     <div className="flex flex-col h-full">
       <TopBar title="Reports" />
-      <div className="p-8 flex-1">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">Reports & Analytics</h2>
+      <div className="p-4 md:p-8 flex-1">
+
+        {/* Header + period toggle */}
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800">Reports</h2>
           <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
             {PERIOD_OPTIONS.map(o => (
               <button key={o.value} onClick={() => setMonths(o.value)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${months === o.value ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                className={`px-3 md:px-4 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-all ${months === o.value ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
                 {o.label}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center justify-between">
+        {/* Summary cards — 1 col on mobile, 3 on desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-5">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5 flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-400">Avg. Monthly Income</p>
-              <p className="font-mono font-bold text-2xl text-slate-800 mt-1">${Math.round(data.avgMonthlyIncome).toLocaleString()}</p>
+              <p className="text-xs md:text-sm text-slate-400">Avg. Monthly Income</p>
+              <p className="font-mono font-bold text-xl md:text-2xl text-slate-800 mt-1">${Math.round(data.avgMonthlyIncome).toLocaleString()}</p>
             </div>
-            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-500"><TrendingUp size={20} /></div>
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-500"><TrendingUp size={18} /></div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5 flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-400">Avg. Monthly Expenses</p>
-              <p className="font-mono font-bold text-2xl text-slate-800 mt-1">${Math.round(data.avgMonthlyExpenses).toLocaleString()}</p>
+              <p className="text-xs md:text-sm text-slate-400">Avg. Monthly Expenses</p>
+              <p className="font-mono font-bold text-xl md:text-2xl text-slate-800 mt-1">${Math.round(data.avgMonthlyExpenses).toLocaleString()}</p>
             </div>
-            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-red-400"><TrendingDown size={20} /></div>
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-red-50 rounded-xl flex items-center justify-center text-red-400"><TrendingDown size={18} /></div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center justify-between">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5 flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-400">Avg. Savings Rate</p>
-              <p className="font-mono font-bold text-2xl text-slate-800 mt-1">{data.savingsRate.toFixed(1)}%</p>
+              <p className="text-xs md:text-sm text-slate-400">Avg. Savings Rate</p>
+              <p className="font-mono font-bold text-xl md:text-2xl text-slate-800 mt-1">{data.savingsRate.toFixed(1)}%</p>
               <p className="text-xs text-emerald-500 mt-1 flex items-center gap-1"><TrendingUp size={11} />{savingsLabel}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-400"><Activity size={20} /></div>
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-400"><Activity size={18} /></div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <h3 className="font-semibold text-slate-800 mb-4">Income vs Expenses</h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={data.monthly} margin={{ left: -10, right: 10 }}>
+        {/* Charts — stacked on mobile, side by side on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5">
+            <h3 className="font-semibold text-slate-800 mb-4 text-sm md:text-base">Income vs Expenses</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={data.monthly} margin={{ left: -15, right: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} width={45} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="income" name="Income" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: '11px' }} />
+                <Bar dataKey="income"   name="Income"   fill="#10b981" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-            <h3 className="font-semibold text-slate-800 mb-4">Net Balance Trend</h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={data.monthly} margin={{ left: -10, right: 10 }}>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5">
+            <h3 className="font-semibold text-slate-800 mb-4 text-sm md:text-base">Net Balance Trend</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={data.monthly} margin={{ left: -15, right: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} width={45} />
                 <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="net" name="Net Balance" stroke="#3b82f6" strokeWidth={2.5} dot={{ fill: '#3b82f6', r: 4 }} />
+                <Line type="monotone" dataKey="net" name="Net Balance" stroke="#3b82f6" strokeWidth={2.5} dot={{ fill: '#3b82f6', r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-          <h3 className="font-semibold text-slate-800 mb-4">Top Spending Categories</h3>
+        {/* Top categories */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5">
+          <h3 className="font-semibold text-slate-800 mb-4 text-sm md:text-base">Top Spending Categories</h3>
           {data.topCategories.length === 0 ? (
             <p className="text-slate-400 text-sm text-center py-6">No expense data yet</p>
           ) : (
             <div className="space-y-3">
               {data.topCategories.map((cat, i) => (
-                <div key={cat.name} className="flex items-center gap-4">
-                  <span className="text-sm text-slate-500 w-5 text-right">{i + 1}</span>
-                  <span className="text-sm font-medium text-slate-700 w-32">{cat.name}</span>
+                <div key={cat.name} className="flex items-center gap-3">
+                  <span className="text-xs text-slate-400 w-4 text-right flex-shrink-0">{i + 1}</span>
+                  <span className="text-xs md:text-sm font-medium text-slate-700 w-24 md:w-32 truncate flex-shrink-0">{cat.name}</span>
                   <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-slate-700 rounded-full transition-all duration-500"
                       style={{ width: `${(cat.total / maxCat) * 100}%` }} />
                   </div>
-                  <span className="font-mono text-sm font-semibold text-slate-700 w-20 text-right">${cat.total.toFixed(0)}</span>
+                  <span className="font-mono text-xs md:text-sm font-semibold text-slate-700 w-16 text-right flex-shrink-0">${cat.total.toFixed(0)}</span>
                 </div>
               ))}
             </div>
