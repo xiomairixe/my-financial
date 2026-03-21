@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import TopBar from '../components/TopBar';
+import { useCurrency } from '../context/CurrencyContext';
 import { getBudgets, createBudget, deleteBudget, getCategories } from '../utils/api';
 
 function SetBudgetModal({ onClose, onSaved, categories, month, year }) {
+  const currency = useCurrency();
   const [form, setForm] = useState({ category: '', monthlyLimit: '' });
   const [loading, setLoading] = useState(false);
   const expenseCats = categories.filter(c => c.type === 'expense' || c.type === 'both');
@@ -37,7 +39,7 @@ function SetBudgetModal({ onClose, onSaved, categories, month, year }) {
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Monthly Limit</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currency}</span>
               <input type="number" min="0" value={form.monthlyLimit}
                 onChange={e => setForm(f => ({ ...f, monthlyLimit: e.target.value }))}
                 placeholder="0"
@@ -58,6 +60,7 @@ function SetBudgetModal({ onClose, onSaved, categories, month, year }) {
 }
 
 export default function Budget() {
+  const currency = useCurrency();
   const now = new Date();
   const [viewDate, setViewDate] = useState({ month: now.getMonth(), year: now.getFullYear() });
   const [data, setData] = useState({ budgets: [], totalBudgeted: 0, totalSpent: 0, remaining: 0 });
@@ -91,8 +94,6 @@ export default function Budget() {
     <div className="flex flex-col h-full">
       <TopBar title="Budget" />
       <div className="p-4 md:p-8 flex-1">
-
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl md:text-2xl font-bold text-slate-800">Budget</h2>
           <button onClick={() => setShowModal(true)}
@@ -101,34 +102,30 @@ export default function Budget() {
           </button>
         </div>
 
-        {/* Month nav + summary — stacked on mobile */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-5">
-          {/* Month navigation */}
           <div className="flex items-center justify-center gap-3 mb-4">
             <button onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500"><ChevronLeft size={16} /></button>
             <span className="font-semibold text-slate-700 text-sm w-36 text-center">{monthLabel}</span>
             <button onClick={() => changeMonth(1)} className="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500"><ChevronRight size={16} /></button>
           </div>
-          {/* Summary stats — 3 cols always */}
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-slate-50 rounded-xl p-3">
               <p className="text-slate-400 text-xs mb-1">Budgeted</p>
-              <p className="font-mono font-bold text-slate-700 text-sm">${data.totalBudgeted.toFixed(0)}</p>
+              <p className="font-mono font-bold text-slate-700 text-sm">{currency}{data.totalBudgeted.toFixed(0)}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-3">
               <p className="text-slate-400 text-xs mb-1">Spent</p>
-              <p className="font-mono font-bold text-slate-700 text-sm">${data.totalSpent.toFixed(0)}</p>
+              <p className="font-mono font-bold text-slate-700 text-sm">{currency}{data.totalSpent.toFixed(0)}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-3">
               <p className="text-slate-400 text-xs mb-1">Remaining</p>
               <p className={`font-mono font-bold text-sm ${data.remaining >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                ${Math.abs(data.remaining).toFixed(0)}
+                {currency}{Math.abs(data.remaining).toFixed(0)}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Budget list */}
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -145,18 +142,18 @@ export default function Budget() {
         ) : (
           <div className="grid grid-cols-1 gap-3 md:gap-4">
             {data.budgets.map(b => {
-              const pct = Math.min((b.spent / b.monthlyLimit) * 100, 100);
+              const pct  = Math.min((b.spent / b.monthlyLimit) * 100, 100);
               const over = b.spent > b.monthlyLimit;
               return (
                 <div key={b._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 md:p-5 group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0 flex-1 mr-3">
                       <p className="font-semibold text-slate-800">{b.category}</p>
-                      <p className="text-xs text-slate-400">${b.spent.toFixed(2)} of ${b.monthlyLimit.toFixed(2)}</p>
+                      <p className="text-xs text-slate-400">{currency}{b.spent.toFixed(2)} of {currency}{b.monthlyLimit.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className={`text-sm font-mono font-bold ${over ? 'text-red-500' : 'text-emerald-500'}`}>
-                        ${Math.abs(b.monthlyLimit - b.spent).toFixed(0)} {over ? 'over' : 'left'}
+                        {currency}{Math.abs(b.monthlyLimit - b.spent).toFixed(0)} {over ? 'over' : 'left'}
                       </span>
                       <button onClick={() => { if (confirm('Delete?')) deleteBudget(b._id).then(fetchData); }}
                         className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-red-400 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100">
@@ -170,7 +167,7 @@ export default function Budget() {
                   </div>
                   <div className="flex justify-between mt-1.5">
                     <span className="text-xs text-slate-400">{pct.toFixed(0)}% used</span>
-                    <span className="text-xs text-slate-400">Limit: ${b.monthlyLimit.toFixed(0)}</span>
+                    <span className="text-xs text-slate-400">Limit: {currency}{b.monthlyLimit.toFixed(0)}</span>
                   </div>
                 </div>
               );
@@ -178,7 +175,6 @@ export default function Budget() {
           </div>
         )}
       </div>
-
       {showModal && <SetBudgetModal onClose={() => setShowModal(false)} onSaved={fetchData} categories={categories} month={viewDate.month} year={viewDate.year} />}
     </div>
   );

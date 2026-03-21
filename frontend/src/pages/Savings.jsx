@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Pencil, Trash2, Calendar } from 'lucide-react';
 import TopBar from '../components/TopBar';
+import { useCurrency } from '../context/CurrencyContext';
 import { getSavingsGoals, createSavingsGoal, updateSavingsGoal, deleteSavingsGoal } from '../utils/api';
 
 const GOAL_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 function GoalModal({ onClose, onSaved, goal }) {
+  const currency = useCurrency();
   const today = new Date().toISOString().split('T')[0];
   const [form, setForm] = useState(goal ? {
     name: goal.name, targetAmount: goal.targetAmount, currentAmount: goal.currentAmount,
@@ -44,7 +46,7 @@ function GoalModal({ onClose, onSaved, goal }) {
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1 block">Target</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currency}</span>
                 <input type="number" min="0" value={form.targetAmount} onChange={e => setForm(f => ({ ...f, targetAmount: e.target.value }))}
                   placeholder="0" className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
               </div>
@@ -52,7 +54,7 @@ function GoalModal({ onClose, onSaved, goal }) {
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1 block">Current</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currency}</span>
                 <input type="number" min="0" value={form.currentAmount} onChange={e => setForm(f => ({ ...f, currentAmount: e.target.value }))}
                   placeholder="0" className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
               </div>
@@ -87,6 +89,7 @@ function GoalModal({ onClose, onSaved, goal }) {
 }
 
 function AddFundsModal({ goal, onClose, onSaved }) {
+  const currency = useCurrency();
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -109,7 +112,7 @@ function AddFundsModal({ goal, onClose, onSaved }) {
         </div>
         <p className="text-sm text-slate-500 mb-4">Adding to <strong>{goal.name}</strong></p>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currency}</span>
           <input type="number" min="0" value={amount} onChange={e => setAmount(e.target.value)}
             placeholder="0.00"
             className="w-full border border-slate-200 rounded-xl pl-7 pr-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
@@ -127,6 +130,7 @@ function AddFundsModal({ goal, onClose, onSaved }) {
 }
 
 export default function Savings() {
+  const currency = useCurrency();
   const [goals, setGoals] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [editGoal, setEditGoal] = useState(null);
@@ -158,8 +162,6 @@ export default function Savings() {
     <div className="flex flex-col h-full">
       <TopBar title="Savings" />
       <div className="p-4 md:p-8 flex-1">
-
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl md:text-2xl font-bold text-slate-800">Savings Goals</h2>
           <button onClick={() => setShowCreate(true)}
@@ -181,17 +183,15 @@ export default function Savings() {
             </button>
           </div>
         ) : (
-          /* 1 col on mobile, 2 on desktop */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {goals.map(goal => {
               const pct = goal.targetAmount > 0 ? Math.min((goal.currentAmount / goal.targetAmount) * 100, 100) : 0;
-              const circumference = 2 * Math.PI * 50;
+              const r   = 38;
+              const circumference = 2 * Math.PI * r;
               return (
                 <div key={goal._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                   <div className="h-1.5" style={{ background: goal.color }} />
                   <div className="p-4 md:p-6">
-
-                    {/* Title row */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="min-w-0 flex-1 mr-2">
                         <h3 className="font-bold text-slate-800 text-base md:text-lg truncate">{goal.name}</h3>
@@ -207,18 +207,16 @@ export default function Savings() {
                         <button onClick={() => handleDelete(goal._id)} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-red-400"><Trash2 size={13} /></button>
                       </div>
                     </div>
-
-                    {/* Progress ring + stats */}
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="grid grid-cols-2 gap-3 mb-4">
                           <div>
                             <p className="text-xs text-slate-400">Current</p>
-                            <p className="font-mono font-bold text-slate-800 text-sm">${goal.currentAmount.toLocaleString('en-US', { minimumFractionDigits: 0 })}</p>
+                            <p className="font-mono font-bold text-slate-800 text-sm">{currency}{goal.currentAmount.toLocaleString('en-US', { minimumFractionDigits: 0 })}</p>
                           </div>
                           <div>
                             <p className="text-xs text-slate-400">Target</p>
-                            <p className="font-mono font-semibold text-slate-500 text-sm">${goal.targetAmount.toLocaleString('en-US', { minimumFractionDigits: 0 })}</p>
+                            <p className="font-mono font-semibold text-slate-500 text-sm">{currency}{goal.targetAmount.toLocaleString('en-US', { minimumFractionDigits: 0 })}</p>
                           </div>
                         </div>
                         <button onClick={() => setAddFundsGoal(goal)}
@@ -226,14 +224,11 @@ export default function Savings() {
                           Add Funds
                         </button>
                       </div>
-
-                      {/* SVG ring — slightly smaller on mobile */}
                       <div className="relative flex items-center justify-center flex-shrink-0">
-                        <svg width="90" height="90" className="-rotate-90 md:w-[120px] md:h-[120px]">
-                          <circle cx="45" cy="45" r="38" fill="none" stroke="#e2e8f0" strokeWidth="8"
-                            className="md:cx-[60] md:cy-[60] md:r-[50]" />
-                          <circle cx="45" cy="45" r="38" fill="none" stroke={goal.color} strokeWidth="8"
-                            strokeDasharray={`${(pct / 100) * (2 * Math.PI * 38)} ${2 * Math.PI * 38}`}
+                        <svg width="90" height="90" className="-rotate-90">
+                          <circle cx="45" cy="45" r={r} fill="none" stroke="#e2e8f0" strokeWidth="8" />
+                          <circle cx="45" cy="45" r={r} fill="none" stroke={goal.color} strokeWidth="8"
+                            strokeDasharray={`${(pct / 100) * circumference} ${circumference}`}
                             strokeLinecap="round" style={{ transition: 'stroke-dasharray 0.5s ease' }} />
                         </svg>
                         <span className="absolute font-bold text-lg text-slate-800">{pct.toFixed(0)}%</span>
