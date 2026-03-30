@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, ArrowLeftRight, PieChart, Tag,
-  PiggyBank, BarChart2, Settings, ChevronLeft, ChevronRight, X
+  PiggyBank, BarChart2, Settings, ChevronLeft, ChevronRight, X, Receipt,
 } from 'lucide-react';
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { icon: Tag,             label: 'Categories',   id: 'categories' },
   { icon: PiggyBank,       label: 'Savings',      id: 'savings' },
   { icon: BarChart2,       label: 'Reports',      id: 'reports' },
+  { icon: Receipt,         label: 'Bills',        id: 'bills' },
   { icon: Settings,        label: 'Settings',     id: 'settings' },
 ];
 
@@ -28,11 +29,9 @@ export default function Sidebar({ active, onNav, user, collapsed, onCollapse, mo
             <circle cx="7" cy="15" r="1.5" fill="white"/>
           </svg>
         </div>
-        {/* Always show label on mobile drawer; respect collapsed on desktop */}
         {(forMobile || !collapsed) && (
           <span className="font-bold text-white text-lg flex-1">FinTrack</span>
         )}
-        {/* Close button — mobile drawer only */}
         {forMobile && (
           <button
             onClick={onMobileClose}
@@ -101,7 +100,6 @@ export default function Sidebar({ active, onNav, user, collapsed, onCollapse, mo
       </aside>
 
       {/* ── MOBILE DRAWER ────────────────────────────────────────── */}
-      {/* Slide-in from the left when mobileOpen = true */}
       <aside
         className={`md:hidden fixed left-0 top-0 h-full w-64 bg-slate-900 flex flex-col z-50 transition-transform duration-300 ease-in-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'

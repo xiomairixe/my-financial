@@ -1,5 +1,3 @@
-import TopBar from '../components/TopBar';
-
 export default function Profile({ user, onLogout }) {
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
 
@@ -11,7 +9,6 @@ export default function Profile({ user, onLogout }) {
 
   return (
     <div className="flex flex-col h-full">
-      <TopBar title="Profile" />
       <div className="p-4 md:p-8 max-w-lg mx-auto w-full">
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 md:p-8 mb-4">

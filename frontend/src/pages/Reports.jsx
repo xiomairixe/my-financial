@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, ResponsiveContainer, Legend } from 'recharts';
-import TopBar from '../components/TopBar';
 import { useCurrency } from '../context/CurrencyContext';
 import { getReports } from '../utils/api';
 
@@ -39,7 +38,6 @@ export default function Reports() {
 
   return (
     <div className="flex flex-col h-full">
-      <TopBar title="Reports" />
       <div className="p-4 md:p-8 flex-1">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl md:text-2xl font-bold text-slate-800">Reports</h2>

@@ -50,6 +50,13 @@ export const createSavingsGoal  = (data)      => api.post('/savings', data);
 export const updateSavingsGoal  = (id, data)  => api.patch(`/savings/${id}`, data);
 export const deleteSavingsGoal  = (id)        => api.delete(`/savings/${id}`);
 
+// Bills
+export const getBills    = ()            => axios.get('/api/bills');
+export const createBill  = (data)        => axios.post('/api/bills', data);
+export const deleteBill  = (id)          => axios.delete(`/api/bills/${id}`);
+export const toggleBillPaid = (id, isPaid) =>
+  axios.patch(`/api/bills/${id}/toggle`, { isPaid, paidAt: isPaid ? new Date() : null });
+
 // ── Reports ───────────────────────────────────────────────────
 export const getReports         = (months) => api.get('/reports', { params: { months } });
 

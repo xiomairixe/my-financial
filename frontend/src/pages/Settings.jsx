@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Save, Download, Trash2, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
-import TopBar from '../components/TopBar';
 import { updateProfile, updatePassword, updateCurrency, exportData, deleteAccount } from '../utils/api';
 
 const CURRENCIES = ['USD ($)', 'EUR (€)', 'GBP (£)', 'JPY (¥)', 'PHP (₱)'];
@@ -212,7 +211,6 @@ export default function Settings({ user, onUserUpdate, onLogout }) {
 
   return (
     <div className="flex flex-col h-full">
-      <TopBar title="Settings" />
       <div className="p-4 md:p-8 flex-1 max-w-5xl">
 
         {/* ── Profile ──────────────────────────────────────── */}

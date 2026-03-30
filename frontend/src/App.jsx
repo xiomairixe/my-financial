@@ -13,6 +13,7 @@ import Settings from './pages/Settings';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Bills from './pages/Bills';
 import useKeepAlive from './hooks/useKeepAlive';
 
 const BOTTOM_NAV = [
@@ -104,6 +105,7 @@ export default function App() {
       case 'categories':   return <Categories />;
       case 'savings':      return <Savings />;
       case 'reports':      return <Reports />;
+      case 'bills':        return <Bills />;
       case 'settings':     return <Settings user={user} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />;
       case 'profile':      return <Profile user={user} onLogout={handleLogout} />;
       default:             return <Dashboard    onNav={handleNav} />;
@@ -111,7 +113,6 @@ export default function App() {
   };
 
   return (
-    // ← CurrencyProvider wraps everything — user.currency changes here propagate everywhere
     <CurrencyProvider currency={user?.currency}>
       <div className="flex min-h-screen bg-slate-50">
 

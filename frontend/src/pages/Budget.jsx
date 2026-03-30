@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import TopBar from '../components/TopBar';
 import { useCurrency } from '../context/CurrencyContext';
 import { getBudgets, createBudget, deleteBudget, getCategories } from '../utils/api';
 
@@ -92,7 +91,6 @@ export default function Budget() {
 
   return (
     <div className="flex flex-col h-full">
-      <TopBar title="Budget" />
       <div className="p-4 md:p-8 flex-1">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-xl md:text-2xl font-bold text-slate-800">Budget</h2>

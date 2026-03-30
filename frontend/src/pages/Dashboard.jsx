@@ -68,7 +68,6 @@ export default function Dashboard({ onNav }) {
 
   return (
     <div className="flex flex-col h-full">
-      <TopBar title="Dashboard" />
       <div className="p-4 md:p-8">
         <div className="flex items-center justify-between mb-5">
           <div>

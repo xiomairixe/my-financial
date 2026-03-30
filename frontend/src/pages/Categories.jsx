@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Trash2 } from 'lucide-react';
-import TopBar from '../components/TopBar';
 import { getCategories, createCategory, deleteCategory } from '../utils/api';
 
 const COLORS = ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#a855f7','#ec4899','#f43f5e','#64748b'];
@@ -91,7 +90,6 @@ export default function Categories() {
 
   return (
     <div className="flex flex-col h-full">
-      <TopBar title="Categories" />
       <div className="p-8 flex-1">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-800">Categories</h2>
@@ -103,7 +101,7 @@ export default function Categories() {
         {loading ? (
           <div className="flex items-center justify-center h-40"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {categories.map(cat => (
               <div key={cat._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0"
