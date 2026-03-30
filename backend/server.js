@@ -10,7 +10,8 @@ const budgetRoutes = require('./routes/budgets');
 const categoryRoutes = require('./routes/categories');
 const savingsRoutes = require('./routes/savings');
 const reportRoutes = require('./routes/reports');
-const auth = require('./middleware/auth'); // ← BAGO
+const auth = require('./middleware/auth'); 
+const billRoutes = require('./routes/bills');
 
 const app = express();
 
@@ -20,12 +21,13 @@ app.use(express.json());
 app.get('/', (req, res) => res.json({ status: 'FinTrack API running', version: '2.0.0' }));
 
 app.use('/api/auth', authRoutes);
-app.use('/api/transactions', transactionRoutes); // may sariling auth na
-app.use('/api/summary',      auth, summaryRoutes);   // ← DINAGDAG auth
-app.use('/api/budgets',      auth, budgetRoutes);    // ← DINAGDAG auth
-app.use('/api/categories',   auth, categoryRoutes);  // ← DINAGDAG auth
-app.use('/api/savings',      auth, savingsRoutes);   // ← DINAGDAG auth
-app.use('/api/reports',      auth, reportRoutes);    // ← DINAGDAG auth
+app.use('/api/transactions', transactionRoutes); 
+app.use('/api/summary',      auth, summaryRoutes); 
+app.use('/api/budgets',      auth, budgetRoutes); 
+app.use('/api/categories',   auth, categoryRoutes);
+app.use('/api/savings',      auth, savingsRoutes);   
+app.use('/api/reports',      auth, reportRoutes);   
+app.use('/api/bills', auth, billRoutes);
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Atlas connected'))

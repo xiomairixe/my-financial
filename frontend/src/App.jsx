@@ -15,6 +15,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Bills from './pages/Bills';
 import useKeepAlive from './hooks/useKeepAlive';
+import Landing from './pages/Landing';
 
 const BOTTOM_NAV = [
   { icon: LayoutDashboard, label: 'Home',         id: 'dashboard' },
@@ -92,9 +93,7 @@ export default function App() {
   const handleUserUpdate = (u) => { setUser(u); localStorage.setItem('user', JSON.stringify(u)); };
 
   if (!user) {
-    return authPage === 'login'
-      ? <Login    onLogin={handleLogin} onGoRegister={() => setAuthPage('register')} />
-      : <Register onLogin={handleLogin} onGoLogin={()    => setAuthPage('login')} />;
+    return <Landing onLogin={handleLogin} />;
   }
 
   const renderPage = () => {
