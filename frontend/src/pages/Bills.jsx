@@ -210,7 +210,7 @@ export default function Bills() {
     setLoading(true);
     try {
       const r = await getBills();
-      setBills(r.data);
+      setBills(r.data.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
