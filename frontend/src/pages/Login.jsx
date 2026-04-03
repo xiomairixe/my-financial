@@ -1,47 +1,50 @@
 import { useState } from 'react';
 import { loginUser } from '../utils/api';
 
-// ── Validation helpers ────────────────────────────────────────
 const validate = ({ email, password }) => {
   const errors = {};
   if (!email.trim())
     errors.email = 'Email is required.';
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
     errors.email = 'Enter a valid email address.';
-
   if (!password)
     errors.password = 'Password is required.';
   else if (password.length < 6)
     errors.password = 'Password must be at least 6 characters.';
-
   return errors;
 };
 
+// ── Shared dark-theme input style ────────────────────────────
+const inputBase = {
+  width: '100%', boxSizing: 'border-box',
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 12, padding: '11px 16px',
+  color: '#f1f5f9', fontSize: 14,
+  fontFamily: 'DM Sans, sans-serif',
+  outline: 'none', transition: 'border-color 0.2s, background 0.2s',
+};
+const inputError = { ...inputBase, border: '1px solid rgba(239,68,68,0.6)', background: 'rgba(239,68,68,0.06)' };
+
 export default function Login({ onLogin, onGoRegister }) {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [rememberMe, setRememberMe] = useState(false);
-  const [errors, setErrors]   = useState({});   // per-field errors
-  const [apiError, setApiError] = useState(''); // server-side error
-  const [loading, setLoading]   = useState(false);
+  const [form,      setForm]      = useState({ email: '', password: '' });
+  const [rememberMe,setRememberMe]= useState(false);
+  const [errors,    setErrors]    = useState({});
+  const [apiError,  setApiError]  = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [focused,   setFocused]   = useState('');
 
   const set = (field) => (e) => {
     setForm(f => ({ ...f, [field]: e.target.value }));
-    // Clear field error on change
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+    if (errors[field]) setErrors(p => ({ ...p, [field]: '' }));
     setApiError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setApiError('');
-
-    // Client-side validation first
     const fieldErrors = validate(form);
-    if (Object.keys(fieldErrors).length > 0) {
-      setErrors(fieldErrors);
-      return;
-    }
-
+    if (Object.keys(fieldErrors).length > 0) { setErrors(fieldErrors); return; }
     setLoading(true);
     try {
       const res = await loginUser({ ...form, rememberMe });
@@ -56,102 +59,106 @@ export default function Login({ onLogin, onGoRegister }) {
     }
   };
 
+  const getInputStyle = (field) => ({
+    ...(errors[field] ? inputError : inputBase),
+    ...(focused === field ? { borderColor: errors[field] ? 'rgba(239,68,68,0.8)' : '#10b981', background: 'rgba(255,255,255,0.07)' } : {}),
+  });
+
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div style={{
+      background: '#0f172a',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 24,
+      padding: '36px 32px',
+      width: '100%',
+      boxSizing: 'border-box',
+      fontFamily: 'DM Sans, sans-serif',
+    }}>
 
-        {/* Logo */}
-        <div className="flex items-center gap-3 justify-center mb-8">
-          <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <rect x="2" y="5" width="20" height="14" rx="3" stroke="white" strokeWidth="2"/>
-              <path d="M2 10h20" stroke="white" strokeWidth="2"/>
-              <circle cx="7" cy="15" r="1.5" fill="white"/>
-            </svg>
-          </div>
-          <span className="font-bold text-slate-800 text-2xl">FinTrack</span>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', marginBottom: 28 }}>
+        <div style={{ width: 38, height: 38, background: '#10b981', borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(16,185,129,0.35)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <rect x="2" y="5" width="20" height="14" rx="3" stroke="white" strokeWidth="2"/>
+            <path d="M2 10h20" stroke="white" strokeWidth="2"/>
+            <circle cx="7" cy="15" r="1.5" fill="white"/>
+          </svg>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-          <h1 className="text-2xl font-bold text-slate-800 mb-1">Welcome back</h1>
-          <p className="text-slate-500 text-sm mb-6">Sign in to your account</p>
-
-          {/* API / server error */}
-          {apiError && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mb-4 border border-red-100">
-              {apiError}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={set('email')}
-                placeholder="you@example.com"
-                className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 transition-colors
-                  ${errors.email
-                    ? 'border-red-300 focus:ring-red-500/20 bg-red-50'
-                    : 'border-slate-200 focus:ring-emerald-500/30 focus:border-emerald-400'}`}
-              />
-              {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={form.password}
-                onChange={set('password')}
-                placeholder="••••••••"
-                className={`w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 transition-colors
-                  ${errors.password
-                    ? 'border-red-300 focus:ring-red-500/20 bg-red-50'
-                    : 'border-slate-200 focus:ring-emerald-500/30 focus:border-emerald-400'}`}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Remember me */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={e => setRememberMe(e.target.checked)}
-                className="w-4 h-4 accent-emerald-500"
-              />
-              <label htmlFor="rememberMe" className="text-sm text-slate-600">
-                Remember me for 30 days
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white font-medium py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/25"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-slate-500 mt-6">
-            Don't have an account?{' '}
-            <button onClick={onGoRegister} className="text-emerald-500 font-medium hover:underline">
-              Create one
-            </button>
-          </p>
-        </div>
+        <span style={{ fontWeight: 700, color: '#f8fafc', fontSize: 20, letterSpacing: '-0.02em' }}>FinTrack</span>
       </div>
+
+      <h1 style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 600, margin: '0 0 4px', textAlign: 'center' }}>Welcome back</h1>
+      <p style={{ color: '#475569', fontSize: 14, textAlign: 'center', margin: '0 0 28px' }}>Sign in to your account</p>
+
+      {/* API error */}
+      {apiError && (
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#fca5a5', borderRadius: 10, padding: '10px 14px', fontSize: 13, marginBottom: 18 }}>
+          {apiError}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* Email */}
+        <div>
+          <label style={{ display: 'block', color: '#94a3b8', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Email</label>
+          <input
+            type="email" value={form.email} onChange={set('email')}
+            placeholder="you@example.com"
+            style={getInputStyle('email')}
+            onFocus={() => setFocused('email')}
+            onBlur={() => setFocused('')}
+          />
+          {errors.email && <p style={{ color: '#f87171', fontSize: 12, margin: '5px 0 0' }}>{errors.email}</p>}
+        </div>
+
+        {/* Password */}
+        <div>
+          <label style={{ display: 'block', color: '#94a3b8', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Password</label>
+          <input
+            type="password" value={form.password} onChange={set('password')}
+            placeholder="••••••••"
+            style={getInputStyle('password')}
+            onFocus={() => setFocused('password')}
+            onBlur={() => setFocused('')}
+          />
+          {errors.password && <p style={{ color: '#f87171', fontSize: 12, margin: '5px 0 0' }}>{errors.password}</p>}
+        </div>
+
+        {/* Remember me */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="checkbox" id="rememberMe" checked={rememberMe}
+            onChange={e => setRememberMe(e.target.checked)}
+            style={{ width: 15, height: 15, accentColor: '#10b981', cursor: 'pointer' }}
+          />
+          <label htmlFor="rememberMe" style={{ color: '#64748b', fontSize: 13, cursor: 'pointer' }}>Remember me for 30 days</label>
+        </div>
+
+        <button
+          type="submit" disabled={loading}
+          style={{
+            width: '100%', background: loading ? '#0d9668' : '#10b981',
+            border: 'none', color: 'white', borderRadius: 12,
+            padding: '13px', fontSize: 15, fontWeight: 600,
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontFamily: 'DM Sans, sans-serif',
+            boxShadow: '0 4px 20px rgba(16,185,129,0.3)',
+            transition: 'all 0.2s', opacity: loading ? 0.8 : 1,
+          }}
+          onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#059669'; }}
+          onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#10b981'; }}
+        >
+          {loading ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+
+      <p style={{ textAlign: 'center', color: '#475569', fontSize: 14, marginTop: 22 }}>
+        Don't have an account?{' '}
+        <button onClick={onGoRegister} style={{ background: 'none', border: 'none', color: '#10b981', fontWeight: 600, cursor: 'pointer', fontSize: 14, fontFamily: 'DM Sans, sans-serif', padding: 0 }}>
+          Create one
+        </button>
+      </p>
     </div>
   );
 }
