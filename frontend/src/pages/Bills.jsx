@@ -1,22 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, X, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, X, Trash2, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
 import { getBills, createBill, deleteBill, toggleBillPaid } from '../utils/api';
 
 const FREQ_STYLES = {
-  weekly:      'bg-blue-100 text-blue-700',
-  'bi-weekly': 'bg-pink-100 text-pink-700',
-  monthly:     'bg-violet-100 text-violet-700',
-  'semi-annual':'bg-emerald-100 text-emerald-700',
-  annual:      'bg-amber-100 text-amber-700',
+  'one-time':    'bg-slate-100 text-slate-600',
+  weekly:        'bg-blue-100 text-blue-700',
+  'bi-weekly':   'bg-pink-100 text-pink-700',
+  monthly:       'bg-violet-100 text-violet-700',
+  'semi-annual': 'bg-emerald-100 text-emerald-700',
+  annual:        'bg-amber-100 text-amber-700',
 };
 
 const FREQ_LABELS = {
-  weekly:       'Weekly',
-  'bi-weekly':  'Bi-weekly',
-  monthly:      'Monthly',
-  'semi-annual':'Semi-annual',
-  annual:       'Annual',
+  'one-time':    'One-time',
+  weekly:        'Weekly',
+  'bi-weekly':   'Bi-weekly',
+  monthly:       'Monthly',
+  'semi-annual': 'Semi-annual',
+  annual:        'Annual',
 };
 
 const ICONS = ['📺','⚡','🌐','🏠','🎵','💳','📱','🚗','💧','🔥','🏥','📦','🎓','💡'];
@@ -25,16 +27,16 @@ function dueDateLabel(dateStr, isPaid, paidAt) {
   if (isPaid && paidAt) {
     return { text: `Paid ${new Date(paidAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`, overdue: false };
   }
-  const due = new Date(dateStr);
+  const due   = new Date(dateStr);
   const today = new Date(); today.setHours(0,0,0,0);
-  const diff = Math.round((due - today) / 86400000);
-  if (diff < 0)  return { text: `Due ${due.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${Math.abs(diff)}d overdue`, overdue: true };
+  const diff  = Math.round((due - today) / 86400000);
+  if (diff < 0)   return { text: `Due ${due.toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${Math.abs(diff)}d overdue`, overdue: true };
   if (diff === 0) return { text: 'Due today', overdue: true };
   if (diff <= 3)  return { text: `Due in ${diff}d`, overdue: false };
   return { text: `Due ${due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`, overdue: false };
 }
 
-// ─── Add Bill Modal ───────────────────────────────────────────────────────────
+// ─── Add Bill Modal ───────────────────────────────────────────
 function AddBillModal({ onClose, onSaved }) {
   const [form, setForm] = useState({
     name: '', amount: '', frequency: 'monthly',
@@ -98,6 +100,7 @@ function AddBillModal({ onClose, onSaved }) {
               <label className="text-xs font-medium text-slate-500 mb-1 block">Frequency</label>
               <select value={form.frequency} onChange={e => set('frequency', e.target.value)}
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400">
+                <option value="one-time">One-time</option>
                 <option value="weekly">Weekly</option>
                 <option value="bi-weekly">Bi-weekly</option>
                 <option value="monthly">Monthly</option>
@@ -107,17 +110,31 @@ function AddBillModal({ onClose, onSaved }) {
             </div>
           </div>
 
+          {/* Recurring hint */}
+          {form.frequency !== 'one-time' && (
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2">
+              <RefreshCw size={13} className="text-emerald-500 flex-shrink-0" />
+              <p className="text-xs text-emerald-700">
+                This bill will automatically repeat every <strong>{FREQ_LABELS[form.frequency].toLowerCase()}</strong> after you mark it paid.
+              </p>
+            </div>
+          )}
+
           {/* Next due date */}
           <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Next due date</label>
+            <label className="text-xs font-medium text-slate-500 mb-1 block">
+              {form.frequency === 'one-time' ? 'Due date' : 'First due date'}
+            </label>
             <input value={form.dueDate} onChange={e => set('dueDate', e.target.value)}
               type="date"
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
           </div>
 
-          {/* Notes (optional) */}
+          {/* Notes */}
           <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Notes <span className="font-normal text-slate-400">(optional)</span></label>
+            <label className="text-xs font-medium text-slate-500 mb-1 block">
+              Notes <span className="font-normal text-slate-400">(optional)</span>
+            </label>
             <input value={form.notes} onChange={e => set('notes', e.target.value)}
               placeholder="e.g., Auto-charged to BPI card"
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
@@ -138,10 +155,11 @@ function AddBillModal({ onClose, onSaved }) {
   );
 }
 
-// ─── Bill Row ─────────────────────────────────────────────────────────────────
+// ─── Bill Row ─────────────────────────────────────────────────
 function BillRow({ bill, currency, onToggle, onDelete }) {
   const { text: dueText, overdue } = dueDateLabel(bill.dueDate, bill.isPaid, bill.paidAt);
   const [toggling, setToggling] = useState(false);
+  const isRecurring = bill.frequency !== 'one-time';
 
   const handleToggle = async () => {
     setToggling(true);
@@ -168,9 +186,15 @@ function BillRow({ bill, currency, onToggle, onDelete }) {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold text-slate-800 truncate ${bill.isPaid ? 'line-through text-slate-400' : ''}`}>
-          {bill.name}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className={`text-sm font-semibold text-slate-800 truncate ${bill.isPaid ? 'line-through text-slate-400' : ''}`}>
+            {bill.name}
+          </p>
+          {/* Recurring indicator */}
+          {isRecurring && !bill.isPaid && (
+            <RefreshCw size={11} className="text-slate-300 flex-shrink-0" />
+          )}
+        </div>
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${FREQ_STYLES[bill.frequency] || 'bg-slate-100 text-slate-600'}`}>
             {FREQ_LABELS[bill.frequency]}
@@ -198,7 +222,7 @@ function BillRow({ bill, currency, onToggle, onDelete }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Page ────────────────────────────────────────────────
 export default function Bills() {
   const currency = useCurrency();
   const [bills, setBills] = useState([]);
@@ -219,6 +243,7 @@ export default function Bills() {
 
   const handleToggle = async (id, isPaid) => {
     await toggleBillPaid(id, isPaid);
+    // Re-fetch so the newly spawned recurring bill appears immediately
     fetchData();
   };
 
@@ -229,13 +254,12 @@ export default function Bills() {
   };
 
   const filtered = bills.filter(b => !freqFilter || b.frequency === freqFilter);
-  const unpaid = filtered.filter(b => !b.isPaid);
-  const paid   = filtered.filter(b =>  b.isPaid);
+  const unpaid   = filtered.filter(b => !b.isPaid);
+  const paid     = filtered.filter(b =>  b.isPaid);
 
-  // Summary — monthly-equivalent totals
-  const FREQ_MULTIPLIER = { weekly: 4.33, 'bi-weekly': 2.17, monthly: 1, 'semi-annual': 1/6, annual: 1/12 };
-  const monthlyTotal = bills.reduce((s, b) => s + b.amount * (FREQ_MULTIPLIER[b.frequency] ?? 1), 0);
-  const paidTotal    = bills.filter(b => b.isPaid).reduce((s, b) => s + b.amount, 0);
+  const FREQ_MULTIPLIER = { 'one-time': 0, weekly: 4.33, 'bi-weekly': 2.17, monthly: 1, 'semi-annual': 1/6, annual: 1/12 };
+  const monthlyTotal = bills.filter(b => !b.isPaid).reduce((s, b) => s + b.amount * (FREQ_MULTIPLIER[b.frequency] ?? 1), 0);
+  const paidTotal    = bills.filter(b =>  b.isPaid).reduce((s, b) => s + b.amount, 0);
   const unpaidTotal  = bills.filter(b => !b.isPaid).reduce((s, b) => s + b.amount, 0);
 
   return (
@@ -269,7 +293,7 @@ export default function Bills() {
 
         {/* Frequency filter */}
         <div className="flex items-center gap-2 mb-4 flex-wrap">
-          {['', 'weekly', 'bi-weekly', 'monthly', 'semi-annual', 'annual'].map(f => (
+          {['', 'one-time', 'weekly', 'bi-weekly', 'monthly', 'semi-annual', 'annual'].map(f => (
             <button key={f} onClick={() => setFreqFilter(f)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                 freqFilter === f
@@ -295,8 +319,6 @@ export default function Bills() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-
-            {/* Unpaid section */}
             {unpaid.length > 0 && (
               <>
                 <div className="px-4 md:px-6 py-2.5 bg-slate-50 border-b border-slate-100">
@@ -311,8 +333,6 @@ export default function Bills() {
                 </div>
               </>
             )}
-
-            {/* Paid section */}
             {paid.length > 0 && (
               <>
                 <div className="px-4 md:px-6 py-2.5 bg-slate-50 border-t border-b border-slate-100">
@@ -327,7 +347,6 @@ export default function Bills() {
                 </div>
               </>
             )}
-
           </div>
         )}
       </div>
