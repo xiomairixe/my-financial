@@ -34,4 +34,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => { console.error('❌ MongoDB error:', err.message); process.exit(1); });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 FinTrack API on port ${PORT}`));
+// server.js / index.js
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
