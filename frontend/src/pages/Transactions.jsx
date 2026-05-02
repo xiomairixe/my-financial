@@ -17,23 +17,33 @@ const TYPE_COLORS = {
   Investments: 'bg-indigo-100 text-indigo-600',
 };
 
+function toArray(raw) {
+  if (Array.isArray(raw))               return raw;
+  if (Array.isArray(raw?.transactions)) return raw.transactions;
+  if (Array.isArray(raw?.data))         return raw.data;
+  return [];
+}
+
 export default function Transactions() {
   const currency = useCurrency();
   const [transactions, setTransactions] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [catFilter, setCatFilter] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [categories,   setCategories]   = useState([]);
+  const [search,       setSearch]       = useState('');
+  const [typeFilter,   setTypeFilter]   = useState('');
+  const [catFilter,    setCatFilter]    = useState('');
+  const [showModal,    setShowModal]    = useState(false);
+  const [loading,      setLoading]      = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [t, c] = await Promise.all([getTransactions({ limit: 100 }), getCategories()]);
-      setTransactions(t.data.transactions);
-      setCategories(c.data);
-    } catch (e) { console.error(e); }
+      const [t, c] = await Promise.all([
+        getTransactions({ limit: 100 }),
+        getCategories(),
+      ]);
+      setTransactions(toArray(t?.data));
+      setCategories(toArray(c?.data));
+    } catch (e) { console.error('[Transactions] fetch error:', e); }
     finally { setLoading(false); }
   }, []);
 
@@ -51,7 +61,8 @@ export default function Transactions() {
   };
 
   const filtered = transactions.filter(t => {
-    const matchSearch = t.description.toLowerCase().includes(search.toLowerCase()) || t.category.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = t.description?.toLowerCase().includes(search.toLowerCase())
+      || t.category?.toLowerCase().includes(search.toLowerCase());
     const matchType = !typeFilter || t.type === typeFilter;
     const matchCat  = !catFilter  || t.category === catFilter;
     return matchSearch && matchType && matchCat;
@@ -64,7 +75,9 @@ export default function Transactions() {
           <h2 className="text-xl md:text-2xl font-bold text-slate-800">Transactions</h2>
           <button onClick={() => setShowModal(true)}
             className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all shadow-lg shadow-emerald-500/25">
-            <Plus size={15} /> <span className="hidden sm:inline">Add Transaction</span><span className="sm:hidden">Add</span>
+            <Plus size={15} />
+            <span className="hidden sm:inline">Add Transaction</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
 
@@ -91,10 +104,9 @@ export default function Transactions() {
           </div>
         </div>
 
-        {/* Table + Card layout */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
 
-          {/* === MOBILE: Card list (hidden on md+) === */}
+          {/* MOBILE: Card list */}
           <div className="md:hidden divide-y divide-slate-100">
             {loading ? (
               <p className="text-center py-12 text-slate-400 text-sm">Loading...</p>
@@ -102,7 +114,6 @@ export default function Transactions() {
               <p className="text-center py-12 text-slate-400 text-sm">No transactions found</p>
             ) : filtered.map(t => (
               <div key={t._id} className="flex items-center gap-3 px-4 py-3.5">
-                {/* Left: date + description */}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-slate-800 truncate">{t.description}</p>
                   <div className="flex items-center gap-2 mt-1">
@@ -114,14 +125,11 @@ export default function Transactions() {
                     </span>
                   </div>
                 </div>
-
-                {/* Right: amount + delete */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className={`text-sm font-mono font-semibold ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-700'}`}>
-                    {t.type === 'income' ? '+' : '-'}{currency}{t.amount.toFixed(2)}
+                    {t.type === 'income' ? '+' : '-'}{currency}{(t.amount ?? 0).toFixed(2)}
                   </span>
-                  <button
-                    onClick={() => handleDelete(t._id)}
+                  <button onClick={() => handleDelete(t._id)}
                     className="w-7 h-7 rounded-lg hover:bg-red-50 inline-flex items-center justify-center text-red-400 transition-all">
                     <Trash2 size={14} />
                   </button>
@@ -130,7 +138,7 @@ export default function Transactions() {
             ))}
           </div>
 
-          {/* === DESKTOP: Table (hidden below md) === */}
+          {/* DESKTOP: Table */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[500px]">
               <thead>
@@ -159,7 +167,7 @@ export default function Transactions() {
                       </span>
                     </td>
                     <td className={`px-6 py-3.5 text-sm font-mono font-semibold text-right whitespace-nowrap ${t.type === 'income' ? 'text-emerald-600' : 'text-slate-700'}`}>
-                      {t.type === 'income' ? '+' : '-'}{currency}{t.amount.toFixed(2)}
+                      {t.type === 'income' ? '+' : '-'}{currency}{(t.amount ?? 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-3.5 text-right">
                       <button onClick={() => handleDelete(t._id)}
@@ -172,9 +180,9 @@ export default function Transactions() {
               </tbody>
             </table>
           </div>
+        </div>
       </div>
 
-      </div>
       {showModal && (
         <AddTransactionModal
           onClose={() => setShowModal(false)}

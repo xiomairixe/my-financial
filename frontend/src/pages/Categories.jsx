@@ -1,17 +1,24 @@
+// ─── Categories.jsx ───────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Trash2 } from 'lucide-react';
 import { getCategories, createCategory, deleteCategory } from '../utils/api';
 
 const COLORS = ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#3b82f6','#6366f1','#8b5cf6','#a855f7','#ec4899','#f43f5e','#64748b'];
-
 const TYPE_BADGE = {
   expense: 'bg-red-100 text-red-600',
-  income: 'bg-green-100 text-green-600',
-  both: 'bg-blue-100 text-blue-600',
+  income:  'bg-green-100 text-green-600',
+  both:    'bg-blue-100 text-blue-600',
 };
 
+function toArray(raw) {
+  if (Array.isArray(raw))             return raw;
+  if (Array.isArray(raw?.categories)) return raw.categories;
+  if (Array.isArray(raw?.data))       return raw.data;
+  return [];
+}
+
 function AddCategoryModal({ onClose, onSaved }) {
-  const [form, setForm] = useState({ name: '', type: 'expense', color: '#ef4444' });
+  const [form,    setForm]    = useState({ name: '', type: 'expense', color: '#ef4444' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -70,13 +77,15 @@ function AddCategoryModal({ onClose, onSaved }) {
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [showModal,  setShowModal]  = useState(false);
+  const [loading,    setLoading]    = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    try { const r = await getCategories(); setCategories(r.data); }
-    catch (e) { console.error(e); }
+    try {
+      const r = await getCategories();
+      setCategories(toArray(r?.data));
+    } catch (e) { console.error('[Categories] fetch error:', e); }
     finally { setLoading(false); }
   }, []);
 
@@ -90,29 +99,42 @@ export default function Categories() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-8 flex-1">
+      <div className="p-4 md:p-8 flex-1">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">Categories</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-800">Categories</h2>
           <button onClick={() => setShowModal(true)}
             className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-lg shadow-emerald-500/25">
             <Plus size={16} /> Add Category
           </button>
         </div>
+
         {loading ? (
-          <div className="flex items-center justify-center h-40"><div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex items-center justify-center h-40">
+            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 flex flex-col items-center gap-3">
+            <p className="font-bold text-slate-700">No categories yet</p>
+            <button onClick={() => setShowModal(true)}
+              className="mt-2 px-6 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600">
+              Add First Category
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {categories.map(cat => (
               <div key={cat._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0"
-                  style={{ background: cat.color + '25', color: cat.color }}>
-                  {cat.name[0]}
+                  style={{ background: (cat.color || '#64748b') + '25', color: cat.color || '#64748b' }}>
+                  {cat.name?.[0] ?? '?'}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-slate-800 truncate">{cat.name}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[cat.type]}`}>{cat.type}</span>
-                    <span className="text-xs text-slate-400">{cat.txCount} tx</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[cat.type] || 'bg-slate-100 text-slate-600'}`}>
+                      {cat.type}
+                    </span>
+                    <span className="text-xs text-slate-400">{cat.txCount ?? 0} tx</span>
                   </div>
                 </div>
                 {!cat.isDefault && (

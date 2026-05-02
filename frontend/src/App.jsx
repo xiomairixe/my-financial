@@ -14,6 +14,7 @@ import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Bills from './pages/Bills';
+import AIAdvisor from './pages/AIAdvisor';
 import useKeepAlive from './hooks/useKeepAlive';
 import Landing from './pages/Landing';
 
@@ -43,7 +44,6 @@ export default function App() {
   const [user,       setUser]       = useState(() => {
     try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
   });
-  const [authPage,   setAuthPage]   = useState('login');
   const [activePage, setActivePage] = useState('dashboard');
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -57,7 +57,7 @@ export default function App() {
     const messages = ['Connecting to server', 'Waking up the backend', 'Almost there', 'Just a few more seconds'];
     let msgIdx = 0;
 
-    const msgTimer  = setInterval(() => {
+    const msgTimer = setInterval(() => {
       msgIdx = (msgIdx + 1) % messages.length;
       if (alive) setSplashMsg(messages[msgIdx]);
     }, 4000);
@@ -88,13 +88,11 @@ export default function App() {
   if (!serverReady) return <SplashScreen message={splashMsg} />;
 
   const handleLogin      = (u) => { setUser(u); setActivePage('dashboard'); };
-  const handleLogout     = ()  => { setUser(null); setAuthPage('login'); };
+  const handleLogout     = ()  => { setUser(null); };
   const handleNav        = (p) => { setActivePage(p); setMobileOpen(false); };
   const handleUserUpdate = (u) => { setUser(u); localStorage.setItem('user', JSON.stringify(u)); };
 
-  if (!user) {
-    return <Landing onLogin={handleLogin} />;
-  }
+  if (!user) return <Landing onLogin={handleLogin} />;
 
   const renderPage = () => {
     switch (activePage) {
@@ -105,9 +103,10 @@ export default function App() {
       case 'savings':      return <Savings />;
       case 'reports':      return <Reports />;
       case 'bills':        return <Bills />;
+      case 'ai-advisor':   return <AIAdvisor />;
       case 'settings':     return <Settings user={user} onUserUpdate={handleUserUpdate} onLogout={handleLogout} />;
       case 'profile':      return <Profile user={user} onLogout={handleLogout} />;
-      default:             return <Dashboard    onNav={handleNav} />;
+      default:             return <Dashboard onNav={handleNav} />;
     }
   };
 
@@ -134,7 +133,7 @@ export default function App() {
               <button onClick={() => setMobileOpen(true)}
                 className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-600 active:scale-95 transition-transform">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="3" y1="6"  x2="21" y2="6"  />
+                  <line x1="3" y1="6"  x2="21" y2="6" />
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
@@ -159,6 +158,7 @@ export default function App() {
           <div className={isMobile ? 'pb-20' : ''}>{renderPage()}</div>
         </main>
 
+        {/* Mobile bottom nav */}
         {isMobile && (
           <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-30 px-1">
             <div className="flex items-center justify-around">

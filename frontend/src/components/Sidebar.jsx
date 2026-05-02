@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, ArrowLeftRight, PieChart, Tag,
-  PiggyBank, BarChart2, Settings, ChevronLeft, ChevronRight, X, Receipt,
+  PiggyBank, BarChart2, Settings, ChevronLeft, ChevronRight,
+  X, Receipt, Sparkles,
 } from 'lucide-react';
 
 const navItems = [
@@ -11,11 +12,12 @@ const navItems = [
   { icon: PiggyBank,       label: 'Savings',      id: 'savings' },
   { icon: BarChart2,       label: 'Reports',      id: 'reports' },
   { icon: Receipt,         label: 'Bills',        id: 'bills' },
+  { icon: Sparkles,        label: 'AI Advisor',   id: 'ai-advisor' },
   { icon: Settings,        label: 'Settings',     id: 'settings' },
 ];
 
 export default function Sidebar({ active, onNav, user, collapsed, onCollapse, mobileOpen, onMobileClose }) {
-  const w = collapsed ? 72 : 220;
+  const w        = collapsed ? 72 : 220;
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
 
   const NavContent = ({ forMobile = false }) => (
@@ -44,20 +46,36 @@ export default function Sidebar({ active, onNav, user, collapsed, onCollapse, mo
 
       {/* Nav items */}
       <nav className="flex flex-col gap-1 flex-1 px-3 py-4 overflow-y-auto">
-        {navItems.map(({ icon: Icon, label, id }) => (
-          <button
-            key={id}
-            onClick={() => onNav(id)}
-            title={(!forMobile && collapsed) ? label : undefined}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full
-              ${active === id
-                ? 'bg-emerald-500/20 text-emerald-400 font-medium'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}
-          >
-            <Icon size={18} className="flex-shrink-0" />
-            {(forMobile || !collapsed) && <span className="text-sm">{label}</span>}
-          </button>
-        ))}
+        {navItems.map(({ icon: Icon, label, id }) => {
+          const isActive   = active === id;
+          const isAI       = id === 'ai-advisor';
+          return (
+            <button
+              key={id}
+              onClick={() => onNav(id)}
+              title={(!forMobile && collapsed) ? label : undefined}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-left w-full
+                ${isActive
+                  ? 'bg-emerald-500/20 text-emerald-400 font-medium'
+                  : isAI
+                    ? 'text-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-400'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+            >
+              <Icon size={18} className="flex-shrink-0" />
+              {(forMobile || !collapsed) && (
+                <span className="text-sm flex items-center gap-2">
+                  {label}
+                  {isAI && !isActive && (
+                    <span className="text-[9px] font-bold bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full">
+                      AI
+                    </span>
+                  )}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       {/* User profile */}
@@ -83,7 +101,7 @@ export default function Sidebar({ active, onNav, user, collapsed, onCollapse, mo
 
   return (
     <>
-      {/* ── DESKTOP SIDEBAR ──────────────────────────────────────── */}
+      {/* ── DESKTOP SIDEBAR ──────────────────────────────────── */}
       <aside
         style={{ width: w, minWidth: w }}
         className="hidden md:flex fixed left-0 top-0 h-full bg-slate-900 flex-col transition-all duration-300 z-50"
@@ -99,7 +117,7 @@ export default function Sidebar({ active, onNav, user, collapsed, onCollapse, mo
         </button>
       </aside>
 
-      {/* ── MOBILE DRAWER ────────────────────────────────────────── */}
+      {/* ── MOBILE DRAWER ────────────────────────────────────── */}
       <aside
         className={`md:hidden fixed left-0 top-0 h-full w-64 bg-slate-900 flex flex-col z-50 transition-transform duration-300 ease-in-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'

@@ -5,13 +5,22 @@ import { getSavingsGoals, createSavingsGoal, updateSavingsGoal, deleteSavingsGoa
 
 const GOAL_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+function toArray(raw) {
+  if (Array.isArray(raw))        return raw;
+  if (Array.isArray(raw?.goals)) return raw.goals;
+  if (Array.isArray(raw?.data))  return raw.data;
+  return [];
+}
+
 function GoalModal({ onClose, onSaved, goal }) {
   const currency = useCurrency();
   const today = new Date().toISOString().split('T')[0];
   const [form, setForm] = useState(goal ? {
-    name: goal.name, targetAmount: goal.targetAmount, currentAmount: goal.currentAmount,
-    deadline: goal.deadline ? new Date(goal.deadline).toISOString().split('T')[0] : today,
-    color: goal.color
+    name:          goal.name,
+    targetAmount:  goal.targetAmount,
+    currentAmount: goal.currentAmount,
+    deadline:      goal.deadline ? new Date(goal.deadline).toISOString().split('T')[0] : today,
+    color:         goal.color,
   } : { name: '', targetAmount: '', currentAmount: '', deadline: today, color: '#3b82f6' });
   const [loading, setLoading] = useState(false);
 
@@ -19,9 +28,13 @@ function GoalModal({ onClose, onSaved, goal }) {
     if (!form.name || !form.targetAmount) return;
     setLoading(true);
     try {
-      const data = { ...form, targetAmount: parseFloat(form.targetAmount), currentAmount: parseFloat(form.currentAmount || 0) };
+      const data = {
+        ...form,
+        targetAmount:  parseFloat(form.targetAmount),
+        currentAmount: parseFloat(form.currentAmount || 0),
+      };
       if (goal) await updateSavingsGoal(goal._id, data);
-      else await createSavingsGoal(data);
+      else      await createSavingsGoal(data);
       onSaved(); onClose();
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -32,7 +45,9 @@ function GoalModal({ onClose, onSaved, goal }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-slate-800">{goal ? 'Edit' : 'Create'} Savings Goal</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400"><X size={18} /></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400">
+            <X size={18} />
+          </button>
         </div>
         <div className="space-y-4">
           <div>
@@ -46,22 +61,27 @@ function GoalModal({ onClose, onSaved, goal }) {
               <label className="text-xs font-medium text-slate-500 mb-1 block">Target</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currency}</span>
-                <input type="number" min="0" value={form.targetAmount} onChange={e => setForm(f => ({ ...f, targetAmount: e.target.value }))}
-                  placeholder="0" className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
+                <input type="number" min="0" value={form.targetAmount}
+                  onChange={e => setForm(f => ({ ...f, targetAmount: e.target.value }))}
+                  placeholder="0"
+                  className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
               </div>
             </div>
             <div>
               <label className="text-xs font-medium text-slate-500 mb-1 block">Current</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{currency}</span>
-                <input type="number" min="0" value={form.currentAmount} onChange={e => setForm(f => ({ ...f, currentAmount: e.target.value }))}
-                  placeholder="0" className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
+                <input type="number" min="0" value={form.currentAmount}
+                  onChange={e => setForm(f => ({ ...f, currentAmount: e.target.value }))}
+                  placeholder="0"
+                  className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
               </div>
             </div>
           </div>
           <div>
             <label className="text-xs font-medium text-slate-500 mb-1 block">Deadline</label>
-            <input type="date" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))}
+            <input type="date" value={form.deadline}
+              onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))}
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-400" />
           </div>
           <div>
@@ -89,14 +109,16 @@ function GoalModal({ onClose, onSaved, goal }) {
 
 function AddFundsModal({ goal, onClose, onSaved }) {
   const currency = useCurrency();
-  const [amount, setAmount] = useState('');
+  const [amount,  setAmount]  = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!amount) return;
     setLoading(true);
     try {
-      await updateSavingsGoal(goal._id, { currentAmount: goal.currentAmount + parseFloat(amount) });
+      await updateSavingsGoal(goal._id, {
+        currentAmount: (goal.currentAmount ?? 0) + parseFloat(amount),
+      });
       onSaved(); onClose();
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -107,7 +129,9 @@ function AddFundsModal({ goal, onClose, onSaved }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-slate-800">Add Funds</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400"><X size={18} /></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400">
+            <X size={18} />
+          </button>
         </div>
         <p className="text-sm text-slate-500 mb-4">Adding to <strong>{goal.name}</strong></p>
         <div className="relative">
@@ -130,16 +154,18 @@ function AddFundsModal({ goal, onClose, onSaved }) {
 
 export default function Savings() {
   const currency = useCurrency();
-  const [goals, setGoals] = useState([]);
-  const [showCreate, setShowCreate] = useState(false);
-  const [editGoal, setEditGoal] = useState(null);
+  const [goals,        setGoals]        = useState([]);
+  const [showCreate,   setShowCreate]   = useState(false);
+  const [editGoal,     setEditGoal]     = useState(null);
   const [addFundsGoal, setAddFundsGoal] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading,      setLoading]      = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    try { const r = await getSavingsGoals(); setGoals(r.data); }
-    catch (e) { console.error(e); }
+    try {
+      const r = await getSavingsGoals();
+      setGoals(toArray(r?.data));
+    } catch (e) { console.error('[Savings] fetch error:', e); }
     finally { setLoading(false); }
   }, []);
 
@@ -176,15 +202,18 @@ export default function Savings() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 flex flex-col items-center gap-3">
             <p className="font-bold text-slate-700">No savings goals yet</p>
             <p className="text-sm text-slate-400 text-center">Create your first savings goal to start tracking!</p>
-            <button onClick={() => setShowCreate(true)} className="mt-2 px-6 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600">
+            <button onClick={() => setShowCreate(true)}
+              className="mt-2 px-6 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600">
               Create Goal
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {goals.map(goal => {
-              const pct = goal.targetAmount > 0 ? Math.min((goal.currentAmount / goal.targetAmount) * 100, 100) : 0;
-              const r   = 38;
+              const pct          = (goal.targetAmount ?? 0) > 0
+                ? Math.min(((goal.currentAmount ?? 0) / goal.targetAmount) * 100, 100)
+                : 0;
+              const r            = 38;
               const circumference = 2 * Math.PI * r;
               return (
                 <div key={goal._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -195,26 +224,41 @@ export default function Savings() {
                         <h3 className="font-bold text-slate-800 text-base md:text-lg truncate">{goal.name}</h3>
                         <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 flex-wrap">
                           <Calendar size={11} />
-                          <span>{goal.deadline ? new Date(goal.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</span>
+                          <span>
+                            {goal.deadline
+                              ? new Date(goal.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                              : '—'}
+                          </span>
                           <span>•</span>
                           <span>{daysLeft(goal.deadline)}</span>
                         </div>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
-                        <button onClick={() => setEditGoal(goal)} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400"><Pencil size={13} /></button>
-                        <button onClick={() => handleDelete(goal._id)} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-red-400"><Trash2 size={13} /></button>
+                        <button onClick={() => setEditGoal(goal)}
+                          className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400">
+                          <Pencil size={13} />
+                        </button>
+                        <button onClick={() => handleDelete(goal._id)}
+                          className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-red-400">
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </div>
+
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="grid grid-cols-2 gap-3 mb-4">
                           <div>
                             <p className="text-xs text-slate-400">Current</p>
-                            <p className="font-mono font-bold text-slate-800 text-sm">{currency}{goal.currentAmount.toLocaleString('en-US', { minimumFractionDigits: 0 })}</p>
+                            <p className="font-mono font-bold text-slate-800 text-sm">
+                              {currency}{(goal.currentAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                            </p>
                           </div>
                           <div>
                             <p className="text-xs text-slate-400">Target</p>
-                            <p className="font-mono font-semibold text-slate-500 text-sm">{currency}{goal.targetAmount.toLocaleString('en-US', { minimumFractionDigits: 0 })}</p>
+                            <p className="font-mono font-semibold text-slate-500 text-sm">
+                              {currency}{(goal.targetAmount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                            </p>
                           </div>
                         </div>
                         <button onClick={() => setAddFundsGoal(goal)}
@@ -222,12 +266,15 @@ export default function Savings() {
                           Add Funds
                         </button>
                       </div>
+
+                      {/* Circular progress */}
                       <div className="relative flex items-center justify-center flex-shrink-0">
                         <svg width="90" height="90" className="-rotate-90">
                           <circle cx="45" cy="45" r={r} fill="none" stroke="#e2e8f0" strokeWidth="8" />
                           <circle cx="45" cy="45" r={r} fill="none" stroke={goal.color} strokeWidth="8"
                             strokeDasharray={`${(pct / 100) * circumference} ${circumference}`}
-                            strokeLinecap="round" style={{ transition: 'stroke-dasharray 0.5s ease' }} />
+                            strokeLinecap="round"
+                            style={{ transition: 'stroke-dasharray 0.5s ease' }} />
                         </svg>
                         <span className="absolute font-bold text-lg text-slate-800">{pct.toFixed(0)}%</span>
                       </div>
